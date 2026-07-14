@@ -1,4 +1,4 @@
-import fitz
+import pymupdf as fitz
 
 def extract_text_from_pdf(uploaded_file):
     text = ""
