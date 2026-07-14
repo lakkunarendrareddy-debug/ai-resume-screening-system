@@ -3,4 +3,4 @@ pandas
 numpy
 matplotlib
 PyPDF2
-PyMuPDF
+PyMuPDF==1.24.10
