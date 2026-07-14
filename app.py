@@ -115,6 +115,37 @@ if uploaded_file is not None:
         st.success("✅ LinkedIn Profile Found")
     else:
         st.warning("❌ LinkedIn Profile Not Found")
+        # -----------------------------
+# GitHub Profile
+# -----------------------------
+
+if "github.com" in resume_text.lower():
+    st.success("✅ GitHub Profile Found")
+else:
+    st.warning("❌ GitHub Profile Not Found")
+
+# -----------------------------
+# Portfolio Website
+# -----------------------------
+
+portfolio_sites = [
+    "portfolio",
+    "netlify.app",
+    "vercel.app",
+    "behance.net"
+]
+
+portfolio_found = False
+
+for site in portfolio_sites:
+    if site in resume_text.lower():
+        portfolio_found = True
+        break
+
+if portfolio_found:
+    st.success("✅ Portfolio Website Found")
+else:
+    st.warning("❌ Portfolio Website Not Found")
 
     # Experience
     experience = re.findall(
