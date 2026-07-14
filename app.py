@@ -179,6 +179,26 @@ else:
 
     if not found:
         st.write("🎓 Education : Not Found")
+        
+        # -----------------------------
+# Resume Word Count
+# -----------------------------
+
+st.subheader("📄 Resume Analysis")
+
+word_count = len(resume_text.split())
+
+st.metric(
+    "Total Resume Words",
+    word_count
+)
+
+if word_count < 300:
+    st.warning("⚠ Resume is too short. Recommended: 400-700 words.")
+elif word_count <= 700:
+    st.success("✅ Resume length is good.")
+else:
+    st.warning("⚠ Resume is too long. Try to keep it within 700 words.")
 
 # -----------------------------
 # Job Description
