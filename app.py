@@ -1,451 +1,662 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 import re
-from io import BytesIO
-
+import matplotlib.pyplot as plt
 from utils.pdf_reader import extract_text_from_pdf
 
-# -----------------------------
+# ---------------------------------------
 # Page Configuration
-# -----------------------------
+# ---------------------------------------
+
 st.set_page_config(
     page_title="AI Resume Screening System",
     page_icon="📄",
     layout="wide"
 )
 
-# -----------------------------
+# ---------------------------------------
 # Title
-# -----------------------------
+# ---------------------------------------
+
 st.title("📄 AI Resume Screening System")
+st.markdown("### Upload your resume and analyze it with AI")
+st.divider()
 
-st.write(
-    "Upload your Resume PDF and compare it with the Job Description."
-)
+# ---------------------------------------
+# Sidebar
+# ---------------------------------------
 
-# -----------------------------
-# Features
-# -----------------------------
-st.header("🚀 Project Features")
+st.sidebar.title("📌 Project Features")
 
-st.write("""
-✅ Upload Resume PDF
+features = [
+    "✅ Upload Resume PDF",
+    "✅ Candidate Details",
+    "✅ Resume Analysis",
+    "✅ Resume Sections",
+    "✅ Resume Completeness Score",
+    "✅ Recommended Job Roles",
+    "✅ Interview Questions",
+    "✅ Job Description",
+    "✅ ATS Score",
+    "✅ Resume Statistics",
+    "✅ Skill Match Percentage",
+    "✅ Resume Rating",
+    "✅ Resume Suggestions",
+    "✅ Pie Chart",
+    "✅ Bar Chart",
+    "✅ Matching Skills",
+    "✅ Missing Skills",
+    "✅ Skill Gap Analysis",
+    "✅ Download ATS Report"
+]
 
-✅ Extract Resume Text
+for feature in features:
+    st.sidebar.write(feature)
 
-✅ Candidate Details
-
-✅ ATS Score
-
-✅ Resume Statistics
-
-✅ Skill Match Percentage
-
-✅ Pie Chart
-
-✅ Bar Chart
-
-✅ Matching Skills
-
-✅ Missing Skills
-
-✅ Resume Rating
-
-✅ Download ATS Report
-""")
-
-# -----------------------------
+# ---------------------------------------
+# Feature 1
 # Upload Resume
-# -----------------------------
+# ---------------------------------------
+
+st.subheader("📄 Upload Resume")
+
 uploaded_file = st.file_uploader(
-    "📄 Upload Resume",
+    "Upload Resume (PDF)",
     type=["pdf"]
 )
 
-resume_text = ""
+if uploaded_file is None:
+    st.info("📄 Please upload a PDF resume to continue.")
+    st.stop()
 
-if uploaded_file is not None:
+resume_text = extract_text_from_pdf(uploaded_file)
 
-    resume_text = extract_text_from_pdf(uploaded_file)
+st.success("✅ Resume Uploaded Successfully")
 
-    st.success("✅ Resume Uploaded Successfully")
+# ---------------------------------------
+# Feature 2
+# Candidate Details
+# ---------------------------------------
 
-    st.write("**File Name:**", uploaded_file.name)
+st.subheader("👤 Candidate Details")
 
-    st.subheader("📄 Resume Text")
+name = "Not Found"
+email = "Not Found"
+phone = "Not Found"
 
-    st.text_area(
-        "Extracted Resume",
-        resume_text,
-        height=250
-    )
+lines = resume_text.split("\n")
 
-    # -----------------------------
-    # Candidate Details
-    # -----------------------------
+for line in lines:
+    line = line.strip()
 
-    st.subheader("👤 Candidate Details")
-
-    # Candidate Name
-    lines = resume_text.split("\n")
-
-    if len(lines) > 0:
-        st.write("👤 Name :", lines[0])
-
-    # Email
-    email = re.findall(
-        r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
-        resume_text
-    )
-
-    if email:
-        st.write("📧 Email :", email[0])
-
-    # Phone
-    phone = re.findall(
-        r"\+?\d[\d\s-]{8,15}",
-        resume_text
-    )
-
-    if phone:
-        st.write("📱 Phone :", phone[0])
-
-    # LinkedIn
-    if "linkedin" in resume_text.lower():
-        st.success("✅ LinkedIn Profile Found")
-    else:
-        st.warning("❌ LinkedIn Profile Not Found")
-        # -----------------------------
-# GitHub Profile
-# -----------------------------
-
-if "github.com" in resume_text.lower():
-    st.success("✅ GitHub Profile Found")
-else:
-    st.warning("❌ GitHub Profile Not Found")
-
-# -----------------------------
-# Portfolio Website
-# -----------------------------
-
-portfolio_sites = [
-    "portfolio",
-    "netlify.app",
-    "vercel.app",
-    "behance.net"
-]
-
-portfolio_found = False
-
-for site in portfolio_sites:
-    if site in resume_text.lower():
-        portfolio_found = True
+    if len(line) > 2:
+        name = line
         break
 
-if portfolio_found:
-    st.success("✅ Portfolio Website Found")
-else:
-    st.warning("❌ Portfolio Website Not Found")
-
-    # Experience
-    experience = re.findall(
-        r'(\d+)\+?\s*years?',
-        resume_text.lower()
-    )
-
-    if experience:
-        st.write("💼 Experience :", experience[0], "Years")
-    else:
-        st.write("💼 Experience : Fresher")
-
-    # Education
-    education_list = [
-        "B.Tech",
-        "B.E",
-        "M.Tech",
-        "MCA",
-        "B.Sc",
-        "M.Sc",
-        "MBA"
-    ]
-
-    found = False
-
-    for edu in education_list:
-        if edu.lower() in resume_text.lower():
-            st.write("🎓 Education :", edu)
-            found = True
-            break
-
-    if not found:
-        st.write("🎓 Education : Not Found")
-        
-        # -----------------------------
-# Resume Word Count
-# -----------------------------
-
-st.subheader("📄 Resume Analysis")
-
-word_count = len(resume_text.split())
-
-st.metric(
-    "Total Resume Words",
-    word_count
+email_match = re.search(
+    r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
+    resume_text
 )
 
-if word_count < 300:
-    st.warning("⚠ Resume is too short. Recommended: 400-700 words.")
-elif word_count <= 700:
-    st.success("✅ Resume length is good.")
-else:
-    st.warning("⚠ Resume is too long. Try to keep it within 700 words.")
-    
-    # -----------------------------
-# Resume Sections Detection
-# -----------------------------
+if email_match:
+    email = email_match.group()
 
-st.subheader("📋 Resume Sections")
+phone_match = re.search(
+    r"(\+91[- ]?)?[6-9]\d{9}",
+    resume_text
+)
+
+if phone_match:
+    phone = phone_match.group()
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.write("**👤 Name :**", name)
+    st.write("**📧 Email :**", email)
+
+with col2:
+    st.write("**📱 Phone :**", phone)
+
+st.divider()
+
+# ---------------------------------------
+# Feature 3
+# Resume Analysis
+# ---------------------------------------
+
+st.subheader("📑 Resume Analysis")
+
+word_count = len(resume_text.split())
+char_count = len(resume_text)
+line_count = len(lines)
+
+st.write("📄 Total Words :", word_count)
+st.write("🔤 Total Characters :", char_count)
+st.write("📃 Total Lines :", line_count)
+# ---------------------------------------
+# Feature 4
+# Resume Sections
+# ---------------------------------------
+
+st.divider()
+st.subheader("📂 Resume Sections")
 
 sections = {
-    "Education": ["education", "b.tech", "b.e", "degree", "college", "university"],
-    "Skills": ["skills", "technical skills", "programming"],
-    "Projects": ["projects", "project"],
-    "Experience": ["experience", "work experience", "employment"],
+    "Education": ["education", "b.tech", "btech", "degree", "college", "university"],
+    "Skills": ["skills", "technical skills", "technologies"],
+    "Projects": ["project", "projects"],
+    "Experience": ["experience", "work experience", "internship"],
     "Certifications": ["certification", "certifications", "certificate"],
-    "Internship": ["internship", "internships"],
-    "Achievements": ["achievement", "achievements", "awards"],
-    "Languages": ["languages", "language"]
+    "Achievements": ["achievement", "achievements"],
 }
 
-resume_lower = resume_text.lower()
+found_sections = []
 
 for section, keywords in sections.items():
-    found = any(keyword in resume_lower for keyword in keywords)
+    for keyword in keywords:
+        if keyword.lower() in resume_text.lower():
+            found_sections.append(section)
+            break
 
-    if found:
-        st.success(f"✅ {section}")
-    else:
-        st.error(f"❌ {section}")
+for section in found_sections:
+    st.success(f"✅ {section}")
 
-# -----------------------------
+missing_sections = []
+
+for section in sections.keys():
+    if section not in found_sections:
+        missing_sections.append(section)
+
+if missing_sections:
+    st.warning("Missing Sections")
+    for item in missing_sections:
+        st.write("❌", item)
+
+# ---------------------------------------
+# Feature 5
+# Resume Completeness Score
+# ---------------------------------------
+
+st.divider()
+st.subheader("📈 Resume Completeness Score")
+
+completeness = int((len(found_sections) / len(sections)) * 100)
+
+st.progress(completeness / 100)
+st.metric("Completeness", f"{completeness}%")
+
+if completeness >= 90:
+    st.success("Excellent Resume")
+elif completeness >= 70:
+    st.info("Good Resume")
+else:
+    st.warning("Resume needs improvement")
+
+# ---------------------------------------
+# Feature 6
+# Recommended Job Roles
+# ---------------------------------------
+
+st.divider()
+st.subheader("💼 Recommended Job Roles")
+
+text = resume_text.lower()
+
+recommended_roles = []
+
+if "python" in text:
+    recommended_roles.append("Python Developer")
+
+if "machine learning" in text or "tensorflow" in text:
+    recommended_roles.append("Machine Learning Engineer")
+
+if "artificial intelligence" in text or "ai" in text:
+    recommended_roles.append("AI Engineer")
+
+if "sql" in text:
+    recommended_roles.append("Data Analyst")
+
+if "power bi" in text:
+    recommended_roles.append("Business Intelligence Analyst")
+
+if "html" in text or "css" in text or "javascript" in text:
+    recommended_roles.append("Frontend Developer")
+
+if "django" in text:
+    recommended_roles.append("Backend Developer")
+
+if len(recommended_roles) == 0:
+    recommended_roles.append("Software Engineer")
+
+for role in recommended_roles:
+    st.success(role)
+    # ---------------------------------------
+# Feature 7
+# Interview Questions
+# ---------------------------------------
+
+st.divider()
+st.subheader("🎤 Interview Questions")
+
+questions = [
+    "Tell me about yourself.",
+    "Explain your final year project.",
+    "What are Python Lists and Tuples?",
+    "What is Machine Learning?",
+    "Explain OOP concepts in Python.",
+    "What is NumPy?",
+    "What is Pandas?",
+    "Explain SQL Joins.",
+    "What is Exception Handling?",
+    "Difference between List and Dictionary?",
+    "Why should we hire you?",
+    "What are your strengths?",
+    "What are your weaknesses?"
+]
+
+for i, q in enumerate(questions, start=1):
+    st.write(f"{i}. {q}")
+
+# ---------------------------------------
+# Feature 8
 # Job Description
-# -----------------------------
+# ---------------------------------------
 
-st.subheader("📝 Job Description")
+st.divider()
+st.subheader("📋 Job Description")
 
 job_description = st.text_area(
     "Paste Job Description Here",
-    height=250
+    height=220
 )
-# -----------------------------
+
+# ---------------------------------------
+# Feature 9
 # ATS Score Calculation
-# -----------------------------
+# ---------------------------------------
 
-if uploaded_file is not None and job_description:
+required_skills = []
 
-    resume = resume_text.lower()
+if job_description.strip() != "":
+
     jd = job_description.lower()
 
-    skills = [
+    skill_database = [
         "python",
+        "java",
+        "c",
+        "c++",
         "sql",
+        "mysql",
+        "html",
+        "css",
+        "javascript",
+        "react",
+        "node",
+        "django",
+        "flask",
         "machine learning",
         "deep learning",
-        "pandas",
-        "numpy",
+        "artificial intelligence",
         "tensorflow",
+        "keras",
+        "numpy",
+        "pandas",
         "opencv",
         "power bi",
         "excel",
-        "django",
-        "flask"
+        "git",
+        "github"
     ]
+
+    for skill in skill_database:
+        if skill in jd:
+            required_skills.append(skill)
+
+    resume_lower = resume_text.lower()
 
     matched = []
     missing = []
 
-    for skill in skills:
-        if skill in jd:
-            if skill in resume:
-                matched.append(skill)
-            else:
-                missing.append(skill)
+    for skill in required_skills:
 
-    total_skills = len(matched) + len(missing)
+        if skill in resume_lower:
+            matched.append(skill)
 
-    if total_skills > 0:
-        score = int((len(matched) / total_skills) * 100)
+        else:
+            missing.append(skill)
+
+    total_skills = len(required_skills)
+
+    if total_skills == 0:
+        ats_score = 0
     else:
-        score = 0
+        ats_score = round((len(matched) / total_skills) * 100)
 
-    # -----------------------------
-    # ATS Score
-    # -----------------------------
+else:
 
-    st.subheader("📊 ATS Score")
+    st.info("Paste a Job Description to continue ATS Analysis.")
+    st.stop()
+    # ---------------------------------------
+# Feature 10
+# ATS Score
+# ---------------------------------------
 
-    st.progress(score / 100)
+st.divider()
+st.subheader("🎯 ATS Score")
 
-    st.success(f"ATS Score : {score}%")
+st.progress(ats_score / 100)
+st.metric("ATS Score", f"{ats_score}%")
 
-    # -----------------------------
-    # Resume Statistics
-    # -----------------------------
+if ats_score >= 80:
+    st.success("Excellent Resume Match")
+elif ats_score >= 60:
+    st.info("Good Resume Match")
+else:
+    st.warning("Low Resume Match")
 
-    st.subheader("📈 Resume Statistics")
+# ---------------------------------------
+# Feature 11
+# Resume Statistics
+# ---------------------------------------
 
-    col1, col2, col3 = st.columns(3)
+st.divider()
+st.subheader("📊 Resume Statistics")
 
-    with col1:
-        st.metric("ATS Score", f"{score}%")
+col1, col2, col3 = st.columns(3)
 
-    with col2:
-        st.metric("Matched Skills", len(matched))
+with col1:
+    st.metric("Words", word_count)
 
-    with col3:
-        st.metric("Missing Skills", len(missing))
+with col2:
+    st.metric("Characters", char_count)
 
-    # -----------------------------
-    # Skill Match Percentage
-    # -----------------------------
+with col3:
+    st.metric("Skills Found", len(matched))
 
-    st.subheader("🎯 Skill Match Percentage")
+# ---------------------------------------
+# Feature 12
+# Skill Match Percentage
+# ---------------------------------------
 
-    match_percentage = (
-        len(matched) / total_skills
-    ) * 100 if total_skills > 0 else 0
+st.divider()
+st.subheader("📈 Skill Match Percentage")
 
-    st.progress(match_percentage / 100)
+match_percentage = ats_score
+missing_percentage = 100 - ats_score
 
-    st.write(f"Skill Match : {match_percentage:.1f}%")
+col1, col2 = st.columns(2)
 
-    # -----------------------------
-    # Resume Rating
-    # -----------------------------
+with col1:
+    st.metric("Matched Skills %", f"{match_percentage}%")
 
-    st.subheader("⭐ Resume Rating")
+with col2:
+    st.metric("Missing Skills %", f"{missing_percentage}%")
 
-    if score >= 90:
-        st.success("⭐⭐⭐⭐⭐ Excellent Resume")
-    elif score >= 80:
-        st.success("⭐⭐⭐⭐ Very Good Resume")
-    elif score >= 60:
-        st.warning("⭐⭐⭐ Good Resume")
-    elif score >= 40:
-        st.warning("⭐⭐ Average Resume")
-    else:
-        st.error("⭐ Needs Improvement")
-            # -----------------------------
-    # Resume Suggestions
-    # -----------------------------
+st.progress(match_percentage / 100)
+# ---------------------------------------
+# Feature 13
+# Resume Rating
+# ---------------------------------------
 
-    st.subheader("💡 Resume Improvement Suggestions")
+st.divider()
+st.subheader("⭐ Resume Rating")
 
-    if score < 60:
-        st.warning("""
-• Add more Python projects
+if ats_score >= 90:
+    rating = "★★★★★ Excellent"
+elif ats_score >= 75:
+    rating = "★★★★☆ Very Good"
+elif ats_score >= 60:
+    rating = "★★★☆☆ Good"
+elif ats_score >= 40:
+    rating = "★★☆☆☆ Average"
+else:
+    rating = "★☆☆☆☆ Needs Improvement"
 
-• Learn Django / Flask
+st.success(f"Resume Rating : {rating}")
 
-• Improve SQL Skills
+# ---------------------------------------
+# Feature 14
+# Resume Suggestions
+# ---------------------------------------
 
-• Learn TensorFlow
+st.divider()
+st.subheader("💡 Resume Suggestions")
 
-• Mention Power BI
+suggestions = []
 
-• Improve Resume Keywords
-""")
-    else:
-        st.success("🎉 Your Resume is well optimized!")
+if ats_score < 80:
+    suggestions.append("Add more skills from the Job Description.")
 
-    # -----------------------------
-    # Pie Chart
-    # -----------------------------
+if "project" not in resume_text.lower():
+    suggestions.append("Add Projects section.")
 
-    st.subheader("📊 Skill Match Chart")
+if "certification" not in resume_text.lower():
+    suggestions.append("Add Certifications section.")
 
-    labels = ["Matched Skills", "Missing Skills"]
-    sizes = [len(matched), len(missing)]
-    colors = ["green", "red"]
+if "experience" not in resume_text.lower():
+    suggestions.append("Add Internship / Experience section.")
 
-    fig, ax = plt.subplots()
+if len(suggestions) == 0:
+    st.success("🎉 Excellent Resume. No major suggestions.")
 
-    ax.pie(
-        sizes,
-        labels=labels,
-        colors=colors,
-        autopct="%1.1f%%",
-        startangle=90
-    )
+else:
+    for i, tip in enumerate(suggestions, start=1):
+        st.warning(f"{i}. {tip}")
 
-    ax.axis("equal")
+# ---------------------------------------
+# Feature 15
+# Skill Match Pie Chart
+# ---------------------------------------
 
-    st.pyplot(fig)
+st.divider()
+st.subheader("🥧 Skill Match Pie Chart")
 
-    # -----------------------------
-    # Bar Chart
-    # -----------------------------
+labels = ["Matched Skills", "Missing Skills"]
 
-    st.subheader("📊 Skill Comparison Bar Chart")
+sizes = [
+    len(matched),
+    len(missing)
+]
 
-    fig2, ax2 = plt.subplots()
+colors = ["green", "red"]
 
-    ax2.bar(
-        ["Matched", "Missing"],
-        [len(matched), len(missing)],
-        color=["green", "red"]
-    )
+explode = (0.08, 0)
 
-    ax2.set_ylabel("Number of Skills")
-    ax2.set_title("Matched vs Missing Skills")
+fig, ax = plt.subplots(figsize=(6,6))
 
-    st.pyplot(fig2)
+ax.pie(
+    sizes,
+    labels=labels,
+    colors=colors,
+    explode=explode,
+    autopct="%1.1f%%",
+    startangle=90,
+    shadow=True
+)
 
-    # -----------------------------
-    # Matching Skills
-    # -----------------------------
+ax.axis("equal")
 
-    st.subheader("✅ Matching Skills")
+st.pyplot(fig)
+# ---------------------------------------
+# Feature 16
+# Skill Match Bar Chart
+# ---------------------------------------
 
-    if matched:
-        for skill in matched:
-            st.success(skill.title())
-    else:
-        st.info("No Matching Skills Found")
+st.divider()
+st.subheader("📊 Skill Match Bar Chart")
 
-    # -----------------------------
-    # Missing Skills
-    # -----------------------------
+fig, ax = plt.subplots(figsize=(6,4))
 
-    st.subheader("❌ Missing Skills")
+categories = ["Matched", "Missing"]
+values = [len(matched), len(missing)]
 
-    if missing:
-        for skill in missing:
-            st.error(skill.title())
-    else:
-        st.success("🎉 No Missing Skills")
+ax.bar(
+    categories,
+    values,
+    color=["green", "red"],
+    width=0.5
+)
 
-    # -----------------------------
-    # Download ATS Report
-    # -----------------------------
+ax.set_ylabel("Number of Skills")
+ax.set_title("Matched vs Missing Skills")
 
-    st.subheader("📄 Download ATS Report")
+for i, value in enumerate(values):
+    ax.text(i, value + 0.2, str(value), ha="center")
 
-    report = f"""
-AI Resume Screening Report
+st.pyplot(fig)
 
-ATS Score : {score}%
+# ---------------------------------------
+# Feature 17
+# Matching Skills
+# ---------------------------------------
 
-Matched Skills:
-{', '.join(matched)}
+st.divider()
+st.subheader("✅ Matching Skills")
 
-Missing Skills:
-{', '.join(missing)}
+if len(matched) == 0:
+    st.warning("No Matching Skills Found")
+else:
+
+    col1, col2 = st.columns(2)
+
+    for index, skill in enumerate(matched):
+
+        if index % 2 == 0:
+            with col1:
+                st.success(skill.title())
+
+        else:
+            with col2:
+                st.success(skill.title())
+                # ---------------------------------------
+# Feature 18
+# Missing Skills
+# ---------------------------------------
+
+st.divider()
+st.subheader("❌ Missing Skills")
+
+if len(missing) == 0:
+    st.success("Excellent! No Missing Skills")
+else:
+
+    col1, col2 = st.columns(2)
+
+    for index, skill in enumerate(missing):
+
+        if index % 2 == 0:
+            with col1:
+                st.error(skill.title())
+
+        else:
+            with col2:
+                st.error(skill.title())
+
+# ---------------------------------------
+# Feature 19
+# Skill Gap Analysis
+# ---------------------------------------
+
+st.divider()
+st.subheader("📉 Skill Gap Analysis")
+
+matched_count = len(matched)
+missing_count = len(missing)
+
+st.write(f"### ✅ Matched Skills : {matched_count}")
+st.write(f"### ❌ Missing Skills : {missing_count}")
+
+if total_skills > 0:
+    gap_percentage = round((missing_count / total_skills) * 100, 2)
+else:
+    gap_percentage = 0
+
+st.metric("Skill Gap", f"{gap_percentage}%")
+
+if gap_percentage == 0:
+    st.success("🎉 Your resume matches all required skills.")
+elif gap_percentage <= 20:
+    st.info("Good! Only a few skills are missing.")
+elif gap_percentage <= 50:
+    st.warning("Moderate skill gap. Add more relevant skills.")
+else:
+    st.error("High skill gap. Update your resume according to the Job Description.")
+
+if missing_count > 0:
+
+    st.write("### 📌 Skills to Learn")
+
+    for skill in missing:
+        st.write(f"➡️ {skill.title()}")
+        # ---------------------------------------
+# Feature 20
+# Download ATS Report
+# ---------------------------------------
+
+st.divider()
+st.subheader("📥 Download ATS Report")
+
+report = f"""
+===============================
+AI RESUME SCREENING REPORT
+===============================
+
+Candidate Name : {name}
+Email          : {email}
+Phone          : {phone}
+
+--------------------------------
+Resume Statistics
+--------------------------------
+
+Words          : {word_count}
+Characters     : {char_count}
+Lines          : {line_count}
+
+--------------------------------
+ATS Result
+--------------------------------
+
+ATS Score              : {ats_score}%
+Resume Rating          : {rating}
+Skill Match Percentage : {match_percentage}%
+
+--------------------------------
+Matched Skills
+--------------------------------
+
+{chr(10).join(matched)}
+
+--------------------------------
+Missing Skills
+--------------------------------
+
+{chr(10).join(missing)}
+
+--------------------------------
+Recommended Job Roles
+--------------------------------
+
+{chr(10).join(recommended_roles)}
+
+--------------------------------
+Interview Questions
+--------------------------------
+
+{chr(10).join(questions)}
+
+===============================
+Generated by
+AI Resume Screening System
+===============================
 """
 
-    st.download_button(
-        label="📥 Download ATS Report",
-        data=report,
-        file_name="ATS_Report.txt",
-        mime="text/plain"
-    )
+st.download_button(
+    label="📄 Download ATS Report",
+    data=report,
+    file_name="ATS_Report.txt",
+    mime="text/plain"
+)
+
+st.success("🎉 AI Resume Screening System Completed Successfully!")
