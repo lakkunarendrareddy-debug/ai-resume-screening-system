@@ -199,6 +199,33 @@ elif word_count <= 700:
     st.success("✅ Resume length is good.")
 else:
     st.warning("⚠ Resume is too long. Try to keep it within 700 words.")
+    
+    # -----------------------------
+# Resume Sections Detection
+# -----------------------------
+
+st.subheader("📋 Resume Sections")
+
+sections = {
+    "Education": ["education", "b.tech", "b.e", "degree", "college", "university"],
+    "Skills": ["skills", "technical skills", "programming"],
+    "Projects": ["projects", "project"],
+    "Experience": ["experience", "work experience", "employment"],
+    "Certifications": ["certification", "certifications", "certificate"],
+    "Internship": ["internship", "internships"],
+    "Achievements": ["achievement", "achievements", "awards"],
+    "Languages": ["languages", "language"]
+}
+
+resume_lower = resume_text.lower()
+
+for section, keywords in sections.items():
+    found = any(keyword in resume_lower for keyword in keywords)
+
+    if found:
+        st.success(f"✅ {section}")
+    else:
+        st.error(f"❌ {section}")
 
 # -----------------------------
 # Job Description
